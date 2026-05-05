@@ -24,7 +24,7 @@ pip install git-ai-summary
 Or from source:
 
 ```bash
-git clone https://github.com/yourusername/git-ai-summary
+git clone https://github.com/wquintili88/git-ai-summary
 cd git-ai-summary
 pip install -e .
 ```

@@ -34,9 +34,9 @@ dependencies = [
 git-ai = "git_ai_summary.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/git-ai-summary"
-Repository = "https://github.com/yourusername/git-ai-summary"
-Issues = "https://github.com/yourusername/git-ai-summary/issues"
+Homepage = "https://github.com/wquintili88/git-ai-summary"
+Repository = "https://github.com/wquintili88/git-ai-summary"
+Issues = "https://github.com/wquintili88/git-ai-summary/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["git_ai_summary"]
