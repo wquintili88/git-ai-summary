@@ -19,7 +19,7 @@ load_dotenv()  # load .env if present
 
 app = typer.Typer(
     name="git-ai",
-    help="Generate README, CHANGELOG, and PR descriptions with Claude AI.",
+    help="Generate README, CHANGELOG, and PR descriptions with Groq AI.",
     add_completion=True,
     no_args_is_help=True,
 )
