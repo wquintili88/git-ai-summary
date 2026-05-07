@@ -1,5 +1,10 @@
 # git-ai-summary
 
+[![PyPI version](https://img.shields.io/pypi/v/git-ai-summary.svg)](https://pypi.org/project/git-ai-summary/)
+[![Python versions](https://img.shields.io/pypi/pyversions/git-ai-summary.svg)](https://pypi.org/project/git-ai-summary/)
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Git%20AI%20Summary-blue?logo=github)](https://github.com/marketplace/actions/git-ai-summary)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 > CLI tool that auto-generates README, CHANGELOG, and PR descriptions from your git history using Groq AI (Llama 3.3 70B).
 
 ## Features
