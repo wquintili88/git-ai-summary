@@ -1,0 +1,105 @@
+name: "Git AI Summary"
+description: "Generate README, CHANGELOG, and PR descriptions using Groq AI"
+author: "wquintili88"
+
+branding:
+  icon: "file-text"
+  color: "purple"
+
+inputs:
+  command:
+    description: "Command to run: readme, changelog, or pr-desc"
+    required: true
+  groq_api_key:
+    description: "Groq API key"
+    required: true
+  repo_path:
+    description: "Path to the git repository"
+    required: false
+    default: "."
+  output_file:
+    description: "Write output to this file path"
+    required: false
+    default: ""
+  since:
+    description: "Tag or commit SHA to compare from (required for changelog)"
+    required: false
+    default: ""
+  version_label:
+    description: "Release label for changelog (e.g. v1.2.0)"
+    required: false
+    default: ""
+  python_version:
+    description: "Python version to use"
+    required: false
+    default: "3.12"
+
+outputs:
+  content:
+    description: "Generated Markdown content"
+    value: ${{ steps.run.outputs.content }}
+  output_file:
+    description: "Path to the output file (if output_file input was set)"
+    value: ${{ steps.run.outputs.output_file }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python_version }}
+
+    - name: Install git-ai-summary
+      shell: bash
+      run: pip install git-ai-summary
+
+    - name: Run git-ai
+      id: run
+      shell: bash
+      env:
+        GROQ_API_KEY: ${{ inputs.groq_api_key }}
+        INPUT_COMMAND: ${{ inputs.command }}
+        INPUT_REPO_PATH: ${{ inputs.repo_path }}
+        INPUT_OUTPUT_FILE: ${{ inputs.output_file }}
+        INPUT_SINCE: ${{ inputs.since }}
+        INPUT_VERSION_LABEL: ${{ inputs.version_label }}
+      run: |
+        ARGS=()
+
+        case "$INPUT_COMMAND" in
+          readme)
+            ARGS+=("readme" "--repo" "$INPUT_REPO_PATH")
+            ;;
+          changelog)
+            if [ -z "$INPUT_SINCE" ]; then
+              echo "::error::Input 'since' is required for the changelog command"
+              exit 1
+            fi
+            ARGS+=("changelog" "--since" "$INPUT_SINCE" "--repo" "$INPUT_REPO_PATH")
+            if [ -n "$INPUT_VERSION_LABEL" ]; then
+              ARGS+=("--version-label" "$INPUT_VERSION_LABEL")
+            fi
+            ;;
+          pr-desc)
+            ARGS+=("pr-desc" "--repo" "$INPUT_REPO_PATH")
+            ;;
+          *)
+            echo "::error::Invalid command '$INPUT_COMMAND'. Use: readme, changelog, or pr-desc"
+            exit 1
+            ;;
+        esac
+
+        if [ -n "$INPUT_OUTPUT_FILE" ]; then
+          ARGS+=("--output" "$INPUT_OUTPUT_FILE")
+          git-ai "${ARGS[@]}"
+          echo "output_file=$INPUT_OUTPUT_FILE" >> "$GITHUB_OUTPUT"
+        else
+          CONTENT=$(git-ai "${ARGS[@]}")
+          # Write multiline content to output
+          {
+            echo "content<<GITAI_EOF"
+            echo "$CONTENT"
+            echo "GITAI_EOF"
+          } >> "$GITHUB_OUTPUT"
+        fi

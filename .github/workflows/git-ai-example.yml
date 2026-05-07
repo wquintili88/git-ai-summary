@@ -1,0 +1,76 @@
+name: Generate AI Summary
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "Command to run"
+        type: choice
+        options:
+          - readme
+          - changelog
+          - pr-desc
+        default: readme
+      since:
+        description: "Tag/SHA for changelog (only for changelog command)"
+        required: false
+      version_label:
+        description: "Version label for changelog"
+        required: false
+
+jobs:
+  # Example 1: Auto-generate PR description on pull requests
+  pr-description:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate PR description
+        id: pr-desc
+        uses: wquintili88/git-ai-summary@main
+        with:
+          command: pr-desc
+          groq_api_key: ${{ secrets.GROQ_API_KEY }}
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## AI-Generated PR Description\n\n${{ steps.pr-desc.outputs.content }}`
+            })
+
+  # Example 2: Manual trigger for readme/changelog
+  manual:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run git-ai
+        id: generate
+        uses: wquintili88/git-ai-summary@main
+        with:
+          command: ${{ inputs.command }}
+          groq_api_key: ${{ secrets.GROQ_API_KEY }}
+          since: ${{ inputs.since }}
+          version_label: ${{ inputs.version_label }}
+          output_file: output.md
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-generated-${{ inputs.command }}
+          path: output.md
